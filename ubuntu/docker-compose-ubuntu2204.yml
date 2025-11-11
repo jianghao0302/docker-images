@@ -1,0 +1,31 @@
+version: '3.9'
+
+services:
+  imagebuilder2204:
+    build:
+      context: ./ # 指定 Yocto + Android 开发环境
+      dockerfile: imagebuilder-22.04.dockerfile # 指定基于 Ubuntu 22.04 构建开发环境
+      args:
+        ### 建议与当前用户的 USER ID & GROUP ID 一致，免除在容器内生成的文件因权限问题导致没法使用
+        # 可执行`$ id -u`查询，需按实际情况修改 
+        DEFAULT_UID: 1000
+        # 可执行`$ id -g`查询，需按实际情况修改 
+        DEFAULT_GID: 1000
+        # 可执行`$ echo $USER`查询，需按实际情况修改 
+        DEFAULT_USER: work
+        # 对应为 DEFAULT_USER 的默认密码，需按实际情况修改 
+        DEFAULT_PASSWD: 1
+    image: imagebuilder:22.04 # 若已构建 imagebuilder:18.04 镜像，此处不会再额外构建， 系统自动直接引用生成容器 
+    container_name: imagebuilder2204 # 设置容器名称
+    # 设置HOSTNAME，便于识别当前处于哪个容器内
+    hostname: Ubuntu2204 
+    restart: no # 自启动, 若是要自启动则设置为 always
+    # 挂载 .gitconfig 文件， 共享当前用户的gitconfig配置（需按实际情况修改）
+    # 挂载 .ssh 目录，共享当前用户的 ssh 密钥（需按实际情况修改）
+    # 挂载 yocto-project 目录，共享源代码（需按实际情况修改）
+    volumes:
+      - /home/work/.gitconfig:/home/work/.gitconfig
+      - /home/work/.ssh/:/home/work/.ssh/
+      - /home/work/nxp/imx-yocto-sumo:/home/work/nxp/imx-yocto-sumo
+    ports:
+      - "9001:22" # 对外开启 sshd 服务，将容器端口 22 映射至本地端口 9001
